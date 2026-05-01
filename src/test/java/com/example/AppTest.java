@@ -10,4 +10,9 @@ class AppTest {
         String result = App.greet("Vishnu");
         assertEquals("Hello, Vishnu!", result);
     }
+
+    @Test
+    void testMain() {
+        App.main(new String[]{});   // covers main()
+    }
 }
