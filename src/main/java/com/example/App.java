@@ -7,7 +7,12 @@ public class App {
     private static final Logger logger = Logger.getLogger(App.class.getName());
 
     public static void main(String[] args) {
-        logger.info(greet("World"));
+
+        String message = greet("World");
+
+        if (message != null && !message.isEmpty()) {
+            logger.info(message);
+        }
     }
 
     public static String greet(String name) {
