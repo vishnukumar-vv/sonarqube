@@ -1,4 +1,4 @@
-name: SonarCloud Quality Check
+name: SonarCloud Code Scan
 
 on:
   push:
@@ -8,48 +8,20 @@ on:
 
 jobs:
   sonarcloud:
-    name: Build and Analyze
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout code
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v3
-
-      # Setup Java
-      - name: Setup Java 17
-        uses: actions/setup-java@v3
         with:
-          distribution: temurin
-          java-version: 17
+          fetch-depth: 0  # required for full analysis
 
-      # Cache Maven dependencies
-      - name: Cache Maven packages
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-m2
-
-      # Build project
-      - name: Build with Maven
-        run: mvn clean verify
-
-      # SonarCloud Scan
       - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          mvn sonar:sonar \
-          -Dsonar.projectKey=vishnukumar-vv_sonarqube \
-          -Dsonar.organization=vishnukumar-vv \
-          -Dsonar.host.url=https://sonarcloud.io \
-          -Dsonar.login=$SONAR_TOKEN
-
-      # Quality Gate Check
-      - name: SonarCloud Quality Gate
-        uses: sonarsource/sonarqube-quality-gate-action@master
-        timeout-minutes: 5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=vishnukumar-vv_sonarqube
+            -Dsonar.organization=vishnukumar-vv
+            -Dsonar.host.url=https://sonarcloud.io
