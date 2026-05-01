@@ -7,7 +7,10 @@ public class App {
     private static final Logger logger = Logger.getLogger(App.class.getName());
 
     public static void main(String[] args) {
-        logger.info(greet("World"));   // ✅ direct call
+
+        String message = greet("World");   // ✅ method executed once
+
+        logger.info(message);              // ✅ no method call inside logger
     }
 
     public static String greet(String name) {
