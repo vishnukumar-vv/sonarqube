@@ -1,11 +1,11 @@
-name: SonarQube Scan
+name: SonarQube Scan (Source-only)
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  build:
+  sonar-scan:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,17 +17,25 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: '17'
-          cache: 'maven'
 
-      - name: Build and run tests
-        run: mvn -B -DskipTests=false verify
+      - name: Install unzip
+        run: sudo apt-get update && sudo apt-get install -y unzip
 
-      - name: Run SonarQube scan
+      - name: Download SonarScanner CLI
+        run: |
+          SCANNER_VERSION="4.8.0.2856"
+          curl -sSLo scanner.zip "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SCANNER_VERSION}-linux.zip"
+          unzip scanner.zip
+          echo "${{ github.workspace }}/sonar-scanner-${SCANNER_VERSION}-linux/bin" >> $GITHUB_PATH
+
+      - name: Run SonarScanner (source-only)
         env:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          mvn -B sonar:sonar \
-            -Dsonar.projectKey=com-example-sonar-maven-demo \
+          sonar-scanner \
             -Dsonar.host.url="$SONAR_HOST_URL" \
-            -Dsonar.login="$SONAR_TOKEN"
+            -Dsonar.login="$SONAR_TOKEN" \
+            -Dsonar.projectKey=com-example-sonar-maven-demo \
+            -Dsonar.sources=src/main/java \
+            -Dsonar.tests=src/test/java
