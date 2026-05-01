@@ -1,4 +1,4 @@
-name: SonarCloud Code Scan
+name: SonarCloud Scan
 
 on:
   push:
@@ -11,27 +11,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout code
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
+      # 2️⃣ Setup Java
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 17
 
-      # ✅ THIS IS YOUR STEP (correct place)
-      - name: Build and Run Tests
+      # 3️⃣ Cache Maven dependencies (faster builds)
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2
+
+      # 4️⃣ Build + Run Tests + Generate Coverage (IMPORTANT)
+      - name: Build and Test
         run: mvn clean verify
 
+      # 5️⃣ SonarCloud Scan (reads JaCoCo report automatically)
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v5
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=vishnukumar-vv_sonarqube
-            -Dsonar.organization=vishnukumar-vv
-            -Dsonar.host.url=https://sonarcloud.io
+        run: mvn sonar:sonar \
+          -Dsonar.projectKey=vishnukumar-vv_sonarqube \
+          -Dsonar.organization=vishnukumar-vv \
+          -Dsonar.host.url=https://sonarcloud.io \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
