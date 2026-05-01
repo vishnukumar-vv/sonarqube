@@ -1,4 +1,4 @@
-## SonarQube + Maven demo
+# SonarQube + Maven demo
 
 This repository demonstrates integrating SonarQube with a Maven project using GitHub Actions.
 
