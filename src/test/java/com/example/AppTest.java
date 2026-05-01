@@ -7,12 +7,11 @@ class AppTest {
 
     @Test
     void testGreet() {
-        String result = App.greet("Vishnu");
-        assertEquals("Hello, Vishnu!", result);
+        assertEquals("Hello, Vishnu!", App.greet("Vishnu"));
     }
 
     @Test
     void testMain() {
-        App.main(new String[]{});   // covers main()
+        assertDoesNotThrow(() -> App.main(new String[]{}));
     }
 }
