@@ -1,41 +1,55 @@
-name: SonarQube Scan (Source-only)
+name: SonarQube Quality Check
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+  pull_request:
 
 jobs:
-  sonar-scan:
+  sonar:
+    name: Build and Analyze
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      # Checkout code
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-      - name: Set up Java 17
+      # Setup Java
+      - name: Setup Java
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
 
-      - name: Install unzip
-        run: sudo apt-get update && sudo apt-get install -y unzip
+      # Cache Maven dependencies (faster builds)
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-m2
 
-      - name: Download SonarScanner CLI
-        run: |
-          SCANNER_VERSION="4.8.0.2856"
-          curl -sSLo scanner.zip "https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-${SCANNER_VERSION}-linux.zip"
-          unzip scanner.zip
-          echo "${{ github.workspace }}/sonar-scanner-${SCANNER_VERSION}-linux/bin" >> $GITHUB_PATH
+      # Build project
+      - name: Build with Maven
+        run: mvn clean verify
 
-      - name: Run SonarScanner (source-only)
+      # SonarQube Scan
+      - name: SonarQube Scan
         env:
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          sonar-scanner \
-            -Dsonar.host.url="$SONAR_HOST_URL" \
-            -Dsonar.login="$SONAR_TOKEN" \
-            -Dsonar.projectKey=com-example-sonar-maven-demo \
-            -Dsonar.sources=src/main/java \
-            -Dsonar.tests=src/test/java
+          mvn sonar:sonar \
+          -Dsonar.projectKey=my-maven-project \
+          -Dsonar.host.url=$SONAR_HOST_URL \
+          -Dsonar.login=$SONAR_TOKEN
+
+      # Quality Gate Check (VERY IMPORTANT)
+      - name: SonarQube Quality Gate Check
+        uses: sonarsource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
