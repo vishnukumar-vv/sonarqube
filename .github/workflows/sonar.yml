@@ -42,7 +42,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
           mvn sonar:sonar \
-          -Dsonar.projectKey=my-maven-project \
+          -Dsonar.projectKey=vishnukumar-vv_sonarqube \
           -Dsonar.organization=vishnukumar-vv \
           -Dsonar.host.url=https://sonarcloud.io \
           -Dsonar.login=$SONAR_TOKEN
