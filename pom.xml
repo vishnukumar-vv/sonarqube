@@ -10,7 +10,7 @@
     <version>1.0-SNAPSHOT</version>
 
     <properties>
-        <!-- Java Version -->
+        <!-- Java -->
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
 
@@ -20,7 +20,7 @@
         <!-- JUnit -->
         <junit.jupiter.version>5.9.3</junit.jupiter.version>
 
-        <!-- Sonar -->
+        <!-- SonarCloud -->
         <sonar.organization>vishnukumar-vv</sonar.organization>
     </properties>
 
@@ -44,7 +44,7 @@
     <build>
         <plugins>
 
-            <!-- Maven Surefire Plugin (Run Tests) -->
+            <!-- Run Tests -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -54,21 +54,17 @@
                 </configuration>
             </plugin>
 
-            <!-- JaCoCo Plugin (Coverage) -->
+            <!-- Coverage Plugin -->
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.10</version>
-
                 <executions>
-                    <!-- Attach JaCoCo agent -->
                     <execution>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
-
-                    <!-- Generate coverage report -->
                     <execution>
                         <id>report</id>
                         <phase>test</phase>
@@ -79,7 +75,7 @@
                 </executions>
             </plugin>
 
-            <!-- Sonar Maven Plugin (optional) -->
+            <!-- Sonar Plugin -->
             <plugin>
                 <groupId>org.sonarsource.scanner.maven</groupId>
                 <artifactId>sonar-maven-plugin</artifactId>
