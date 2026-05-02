@@ -41,11 +41,12 @@ jobs:
       - name: Install JFrog CLI
         run: |
           curl -fL https://install-cli.jfrog.io | sh
-          sudo mv jf /usr/local/bin/jf
 
       # 6. Verify CLI (important debug)
       - name: Verify JFrog CLI
-        run: jf --version
+        run: |
+          which jf
+          jf --version
 
       # 7. Configure Artifactory
       - name: Configure JFrog
@@ -61,7 +62,7 @@ jobs:
         run: |
           jf rt u "target/*.jar" libs-release-local/
 
-      # 9. Upload with Version (Best Practice)
+      # 9. Upload Versioned Artifact (Best Practice)
       - name: Upload Versioned Artifact
         run: |
           VERSION=$(date +%Y%m%d%H%M)
