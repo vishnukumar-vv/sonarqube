@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout
+      # 1. Checkout Code
       - name: Checkout code
         uses: actions/checkout@v3
         with:
@@ -24,11 +24,11 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      # 3. Build
+      # 3. Build + Test
       - name: Build and Test
         run: mvn clean verify
 
-      # 4. SonarCloud
+      # 4. SonarCloud Scan
       - name: SonarCloud Scan
         run: |
           mvn sonar:sonar \
@@ -45,13 +45,14 @@ jobs:
       - name: Verify JFrog CLI
         run: jf --version
 
-      # 7. Configure Artifactory (FIXED)
+      # 7. Configure Artifactory (FINAL FIX)
       - name: Configure JFrog
         run: |
           jf config add artifactory-server \
             --url=${{ secrets.JFROG_URL }} \
             --user=${{ secrets.JFROG_USER }} \
             --password=${{ secrets.JFROG_PASSWORD }} \
+            --enc-password=false \
             --basic-auth-only=true \
             --interactive=false
 
@@ -60,10 +61,10 @@ jobs:
         run: jf rt ping
 
       # 9. Upload Artifact
-      - name: Upload JAR
+      - name: Upload JAR to Artifactory
         run: jf rt u "target/*.jar" libs-release-local/
 
-      # 10. Versioned Upload (optional but recommended)
+      # 10. Upload Versioned Artifact (Best Practice)
       - name: Upload Versioned Artifact
         run: |
           VERSION=$(date +%Y%m%d%H%M)
