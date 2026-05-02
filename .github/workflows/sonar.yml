@@ -11,24 +11,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout
+      # 1. Checkout Code
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      # 2. Java setup
+      # 2. Setup Java
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 17
 
-      # 3. Build
+      # 3. Build + Test
       - name: Build and Test
         run: mvn clean verify
 
-      # 4. SonarCloud
+      # 4. SonarCloud Scan
       - name: SonarCloud Scan
         run: |
           mvn sonar:sonar \
@@ -42,26 +42,27 @@ jobs:
         run: curl -fL https://install-cli.jfrog.io | sh
 
       # 6. Verify CLI
-      - name: Verify CLI
+      - name: Verify JFrog CLI
         run: jf --version
 
-      # 7. Configure Artifactory (FIXED)
+      # 7. Configure Artifactory (API KEY FIX)
       - name: Configure JFrog
         run: |
           jf config add artifactory-server \
           --url=${{ secrets.JFROG_URL }} \
-          --access-token=${{ secrets.JFROG_PASSWORD }} \
+          --user=${{ secrets.JFROG_USER }} \
+          --apikey=${{ secrets.JFROG_PASSWORD }} \
           --interactive=false
 
-      # 8. Test connection (VERY IMPORTANT)
+      # 8. Test Connection
       - name: Test Artifactory Connection
         run: jf rt ping
 
-      # 9. Upload artifact
-      - name: Upload Artifact
+      # 9. Upload Artifact
+      - name: Upload JAR to Artifactory
         run: jf rt u "target/*.jar" libs-release-local/
 
-      # 10. Upload versioned artifact (best practice)
+      # 10. Upload Versioned Artifact (Best Practice)
       - name: Upload Versioned Artifact
         run: |
           VERSION=$(date +%Y%m%d%H%M)
