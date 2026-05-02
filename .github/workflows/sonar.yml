@@ -11,24 +11,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout Code
+      # 1. Checkout
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      # 2. Setup Java
+      # 2. Java setup
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 17
 
-      # 3. Build + Test
+      # 3. Build
       - name: Build and Test
         run: mvn clean verify
 
-      # 4. SonarCloud Scan
+      # 4. SonarCloud
       - name: SonarCloud Scan
         run: |
           mvn sonar:sonar \
@@ -37,32 +37,31 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
-      # 5. Install JFrog CLI (FIXED)
+      # 5. Install JFrog CLI
       - name: Install JFrog CLI
-        run: |
-          curl -fL https://install-cli.jfrog.io | sh
+        run: curl -fL https://install-cli.jfrog.io | sh
 
-      # 6. Verify CLI (important debug)
-      - name: Verify JFrog CLI
-        run: |
-          which jf
-          jf --version
+      # 6. Verify CLI
+      - name: Verify CLI
+        run: jf --version
 
-      # 7. Configure Artifactory
+      # 7. Configure Artifactory (FIXED)
       - name: Configure JFrog
         run: |
           jf config add artifactory-server \
-          --url=${{ secrets.JFROG_URL }}/artifactory \
-          --user=${{ secrets.JFROG_USER }} \
-          --password=${{ secrets.JFROG_PASSWORD }} \
+          --url=${{ secrets.JFROG_URL }} \
+          --access-token=${{ secrets.JFROG_PASSWORD }} \
           --interactive=false
 
-      # 8. Upload Artifact
-      - name: Upload JAR to Artifactory
-        run: |
-          jf rt u "target/*.jar" libs-release-local/
+      # 8. Test connection (VERY IMPORTANT)
+      - name: Test Artifactory Connection
+        run: jf rt ping
 
-      # 9. Upload Versioned Artifact (Best Practice)
+      # 9. Upload artifact
+      - name: Upload Artifact
+        run: jf rt u "target/*.jar" libs-release-local/
+
+      # 10. Upload versioned artifact (best practice)
       - name: Upload Versioned Artifact
         run: |
           VERSION=$(date +%Y%m%d%H%M)
