@@ -1,4 +1,4 @@
-name: SonarCloud CI
+name: CI + Sonar + Artifactory
 
 on:
   push:
@@ -7,28 +7,28 @@ on:
   pull_request:
 
 jobs:
-  sonar:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout
+      # 1. Checkout Code
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      # Java Setup
+      # 2. Setup Java
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 17
 
-      # Build + Test + Coverage
+      # 3. Build + Test
       - name: Build and Test
         run: mvn clean verify
 
-      # SonarCloud Scan
+      # 4. SonarCloud Scan
       - name: SonarCloud Scan
         run: |
           mvn sonar:sonar \
@@ -36,3 +36,27 @@ jobs:
             -Dsonar.organization=vishnukumar-vv \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+
+      # 5. Install JFrog CLI
+      - name: Install JFrog CLI
+        run: curl -fL https://install-cli.jfrog.io | sh
+
+      # 6. Configure Artifactory
+      - name: Configure JFrog Artifactory
+        run: |
+          ./jfrog config add artifactory-server \
+          --url=${{ secrets.JFROG_URL }}/artifactory \
+          --user=${{ secrets.JFROG_USER }} \
+          --password=${{ secrets.JFROG_PASSWORD }} \
+          --interactive=false
+
+      # 7. Upload Artifact to Artifactory
+      - name: Upload JAR
+        run: |
+          ./jfrog rt u "target/*.jar" libs-release-local/
+
+      # 8. (Optional) Versioned Upload - better practice
+      - name: Upload with Version
+        run: |
+          VERSION=$(date +%Y%m%d%H%M)
+          ./jfrog rt u "target/*.jar" libs-release-local/myapp-$VERSION.jar
